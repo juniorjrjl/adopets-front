@@ -1,7 +1,3 @@
-import { PaymentType } from "./enum/payment-type";
-import { Sex } from "./enum/sex";
-import { Size } from "./enum/size";
-import { Age } from "./enum/age";
 
 export class PetTableModel{
     public id: number = 0;
@@ -11,13 +7,14 @@ export class PetTableModel{
     public created_date: Date = new Date();
     public status_key: string = "";
     public price: Number = 0;
-    public payment_model:PaymentType = PaymentType.FREE;
-    public sex: Sex = Sex.MALE;
-    public size: Size = Size.S;
-    public age: Age = Age.BABY
+    public payment_model: "FREE" | "ADOPTER_PAYS";
+    public sex: "MALE" | "FEMALE"
+    public size:     "S" | "M" | "L" | "XL"
+    public age: "BABY" |"YOUNG" | "ADULT" | "SENIOR"
 
     constructor(id: number, name: string, specie: string, breed: string, created_date: Date, status_key: string, 
-                price: number, payment_model: PaymentType, sex: Sex, size: Size, age: Age){
+                price: number, payment_model: "FREE" | "ADOPTER_PAYS", sex: "MALE" | "FEMALE", size:  "S" | "M" | "L" | "XL", 
+                age: "BABY" |"YOUNG" | "ADULT" | "SENIOR"){
         this.id = id;
         this.name = name;
         this.specie = specie;
