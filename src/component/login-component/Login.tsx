@@ -1,11 +1,13 @@
-import AuthorizationClient from '../../rest/AuthorizationClient';
+import ClientAuthorization from '../../rest/client-authorization';
 import React, {Component } from 'react';
-import { Input, Button, notification, Row, Col, Layout } from 'antd';
+import { Input, Button, Row, Col, Layout } from 'antd';
 import 'antd/dist/antd.css';
 import './login.css'
 import history from '../../navigation/history';
 import { OrganizationUser } from '../../rest/type/request/organization-user';
 import { SessionKey } from '../../constants/session-key';
+import PageKey from '../../constants/page-key';
+import Notification from '../notify/notification';
 const  { Header, Content} = Layout;
 
 export interface IProps { }
@@ -29,36 +31,34 @@ export class Login extends Component<IProps, IState>{
     }
 
     private async authorizeApp(){
-        await AuthorizationClient.requestSession()
+        await ClientAuthorization.requestSession()
         .then(r => {
             if (r.data.data){
                 sessionStorage.setItem(SessionKey.APP_KEY, r.data.data.access_key);
             }else{
-                this.notify("error", "Error", "Unexpected error to authenticate, please contact a system administrator");
+                Notification.sendNotification("error", "Error", "Unexpected error to authenticate, please contact a system administrator");
             }
         })
-        .catch(() => this.notify("error", "Error", "Unexpected error, please contact a system administrator"))
-        .finally(() => this.authorizeApp());
-    }
-
-    private notify(type: 'success' | 'info' | 'error' | 'warning', title: string, detail: string){
-        notification[type]({message: title, description: detail});
+        .catch(() => {
+            Notification.sendNotification("error", "Error", "Unexpected error, please contact a system administrator");
+            this.authorizeApp();
+        })
     }
 
     private async login(){
-        await AuthorizationClient.authorizeUser(this.state.user)
+        await ClientAuthorization.authorizeUser(this.state.user)
             .then(r =>{
                 if (r.data.data){
                     sessionStorage.setItem(SessionKey.CURRENT_USER, r.data.data.organization_user.first_name + 
                                            " " + 
                                            r.data.data.organization_user.last_name);
                     sessionStorage.setItem(SessionKey.ACCESS_TOKEN, r.data.data.access_key);
-                    history.push("/pets")
+                    history.push(PageKey.PET_SEARCH);
                 }else{
-                    this.notify("error", "Error", r.data.message);
+                    Notification.sendNotification("error", "Error", r.data.message);
                 }
             })
-            .catch(() => this.notify("error", "Error", "Unexpected error, please contact a system administrator"))
+            .catch(() => Notification.sendNotification("error", "Error", "Unexpected error, please contact a system administrator"))
             .finally(() => this.authorizeApp());
     }
 

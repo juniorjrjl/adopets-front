@@ -20,7 +20,9 @@ export class Branch{
 }
 
 export class Search{
-    public sex_key: "MALE" | "FEMALE" = "MALE";
+    public sex_key: string | undefined
+    public size_key: string | undefined
+    public age_key: string | undefined
     public _fields: Array<String> = [];
     public specie = new Specie();
     public breed_primary = new BreedPrimary();
