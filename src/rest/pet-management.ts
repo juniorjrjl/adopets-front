@@ -1,13 +1,13 @@
 import axios from 'axios'
-import { SessionKey } from '../../constants/session-key';
-import { PetSearchConfig } from './request/pet-search-config';
-import WebResource from '../../constants/web-resource';
+import { SessionKey } from '../constants/session-key';
+import { PetSearchConfig } from './type/request/pet-search-config';
+import WebResource from '../constants/web-resource';
 
 export default class PetManagement{
 
 
     public static async findPageable(petSearchConfig: PetSearchConfig){
-        let access_token = sessionStorage.getItem(SessionKey.ACCESS_TOKEN);
+        let access_token = localStorage.getItem(SessionKey.ACCESS_TOKEN);
         if (!petSearchConfig.search.age_key){
             delete petSearchConfig.search.age_key
         }

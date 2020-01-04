@@ -1,4 +1,4 @@
-import React, {Component, ReactElement} from 'react';
+import React, { Component } from 'react';
 import { Tag, Table, Row, Col, Button, Tooltip, Layout } from 'antd';
 import { PetTableModel } from './type/pet-table-model';
 import moment from 'moment';
@@ -6,7 +6,7 @@ import { ColumnProps, PaginationConfig, TableCurrentDataSource, SorterResult } f
 import 'antd/dist/antd.min.css'
 import './pet-search.css'
 import { SessionKey } from '../../constants/session-key';
-import PetManagement from '../../rest/type/pet-management';
+import PetManagement from '../../rest/pet-management';
 import { PetSearchConfig, Option, Search } from '../../rest/type/request/pet-search-config';
 import Notification from '../notify/notification';
 import history from '../../navigation/history';
@@ -44,11 +44,7 @@ export class PetSearch extends Component<IProps, IState>{
   }
 
     componentDidMount(){
-      let user = sessionStorage.getItem(SessionKey.CURRENT_USER);
-      if (!sessionStorage.getItem(SessionKey.ACCESS_TOKEN)){
-        history.push(PageKey.HOME_PAGE);
-        Notification.sendNotification("error", "Error", "you must authenticate yourself for access this resource.");
-      }
+      let user = localStorage.getItem(SessionKey.CURRENT_USER);
       if (user) {
         this.setState({currentUser:  user});
         let searchConfig = new PetSearchConfig();
@@ -130,7 +126,7 @@ export class PetSearch extends Component<IProps, IState>{
     }
 
     private logout(){
-      sessionStorage.clear();
+      localStorage.clear();
       history.push(PageKey.HOME_PAGE);
     }
 

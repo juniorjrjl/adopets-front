@@ -34,7 +34,7 @@ export class Login extends Component<IProps, IState>{
         await ClientAuthorization.requestSession()
         .then(r => {
             if (r.data.data){
-                sessionStorage.setItem(SessionKey.APP_KEY, r.data.data.access_key);
+                localStorage.setItem(SessionKey.APP_KEY, r.data.data.access_key);
             }else{
                 Notification.sendNotification("error", "Error", "Unexpected error to authenticate, please contact a system administrator");
             }
@@ -49,10 +49,10 @@ export class Login extends Component<IProps, IState>{
         await ClientAuthorization.authorizeUser(this.state.user)
             .then(r =>{
                 if (r.data.data){
-                    sessionStorage.setItem(SessionKey.CURRENT_USER, r.data.data.organization_user.first_name + 
+                    localStorage.setItem(SessionKey.CURRENT_USER, r.data.data.organization_user.first_name + 
                                            " " + 
                                            r.data.data.organization_user.last_name);
-                    sessionStorage.setItem(SessionKey.ACCESS_TOKEN, r.data.data.access_key);
+                    localStorage.setItem(SessionKey.ACCESS_TOKEN, r.data.data.access_key);
                     history.push(PageKey.PET_SEARCH);
                 }else{
                     Notification.sendNotification("error", "Error", r.data.message);
