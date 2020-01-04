@@ -44,17 +44,14 @@ export class PetSearch extends Component<IProps, IState>{
   }
 
     componentDidMount(){
-      let user = localStorage.getItem(SessionKey.CURRENT_USER);
-      if (user) {
-        this.setState({currentUser:  user});
-        let searchConfig = new PetSearchConfig();
-        let option = new Option()
-        option.limit = 10
-        option.page = 1;
-        searchConfig.options = option;
-        searchConfig.search = this.filterConfig();
-        this.findPets(searchConfig);
-      }
+      this.setState({currentUser:  localStorage.getItem(SessionKey.CURRENT_USER) || ""});
+      let searchConfig = new PetSearchConfig();
+      let option = new Option()
+      option.limit = 10
+      option.page = 1;
+      searchConfig.options = option;
+      searchConfig.search = this.filterConfig();
+      this.findPets(searchConfig);
     }
 
     private filterConfig(): Search{
@@ -80,12 +77,12 @@ export class PetSearch extends Component<IProps, IState>{
         option.limit = pagination.pageSize ? pagination.pageSize : 10;
       }
       if (sorter.order){
-        option.sort.push(sorter.order === "descend" ? `-${sorter.columnKey}`: sorter.columnKey)
+        option.sort.push(sorter.order === "descend" ? `-${sorter.columnKey}`: `${sorter.columnKey}`)
       }
       if (filters){
-        searchConfig.search.sex_key = filters && filters["sex"] ? filters["sex"].toString() : undefined
-        searchConfig.search.size_key = filters && filters["size"] ? filters["size"].toString() : undefined
-        searchConfig.search.age_key = filters && filters["age"] ? filters["age"].toString() : undefined
+        searchConfig.search.sex_key = filters && filters["sex_key"] ? filters["sex_key"].toString() : undefined
+        searchConfig.search.size_key = filters && filters["size_key"] ? filters["size_key"].toString() : undefined
+        searchConfig.search.age_key = filters && filters["age_key"] ? filters["age_key"].toString() : undefined
       }
       searchConfig.options = option;
       this.findPets(searchConfig)
@@ -94,7 +91,7 @@ export class PetSearch extends Component<IProps, IState>{
     private populateTable(jsonResult: Array<any>){
       let pets: Array<PetTableModel> = [];
       jsonResult.forEach((p: any) => {
-        let pet = new PetTableModel(p.id, p.name, p.specie.name, p.breed, p.created_date, 
+        let pet = new PetTableModel(p.id, p.name, p.specie.name, p.breed_primary.name, p.created_date, 
                                     p.status_key, p.price, p.payment_model_key, 
                                     p.sex_key, p.size_key, p.age_key);
         pets.push(pet);
@@ -116,12 +113,15 @@ export class PetSearch extends Component<IProps, IState>{
                 }
             })
           }else{
-            Notification.sendNotification("error", "Error", r.data.message);
+            if (r.data.code === 5203){
+              Notification.sendNotification("error", "Error", "Your session has expired, please login again");
+              history.push("/")
+            }else{
+              Notification.sendNotification("error", "Error", r.data.message);
+            }
           }
         })
-        .catch(e => {
-          Notification.sendNotification("error", "Error", "Unexpected error, please contact a system administrator");
-        });
+        .catch(e => Notification.sendNotification("error", "Error", "Unexpected error, please contact a system administrator"));
         this.setState({loading: false});
     }
 
@@ -142,14 +142,14 @@ export class PetSearch extends Component<IProps, IState>{
             title: 'Specie',
             dataIndex: 'specie',
             key: 'specie',
-            sorter: true,
+            sorter: false,
             sortDirections: ["descend", "ascend"]
           },
           {
             title: 'Breed',
             dataIndex: 'breed',
             key: 'breed',
-            sorter: true,
+            sorter: false,
             sortDirections: ["descend", "ascend"]
           },
           {
@@ -162,7 +162,7 @@ export class PetSearch extends Component<IProps, IState>{
           },
           {
             title: 'Status',
-            dataIndex: 'status_key',
+            dataIndex: 'status',
             key: 'status_key',
             sorter: true,
             sortDirections: ["descend", "ascend"]
@@ -177,15 +177,25 @@ export class PetSearch extends Component<IProps, IState>{
           {
             title: 'Payment Model',
             dataIndex: 'payment_model',
-            key: 'payment_model',
+            key: 'payment_model_key',
             sorter: true,
-            sortDirections: ["descend", "ascend"]
+            sortDirections: ["descend", "ascend"],
+            render: (data: string) => {
+              let payment = data.charAt(0) + data.slice(1).toLowerCase()
+              let underIndex = payment.indexOf("_");
+              if (underIndex >= 0){
+                let beforeUnder = payment.substring(0, underIndex);
+                let afterUnder = payment.substring(underIndex + 1, payment.length);
+                payment = beforeUnder + " " + afterUnder.charAt(0).toUpperCase() + afterUnder.slice(1);
+              }
+              return payment;
+            }
           },
 
           {
             title: 'Sex',
-            dataIndex: 'sex',
-            key: 'sex',
+            dataIndex: 'sex_key',
+            key: 'sex_key',
             sorter: true,
             sortDirections: ["descend", "ascend"],
             filters: [{text: "Male", value: "MALE"}, {text: "Female", value: "FEMALE"}],
@@ -194,17 +204,17 @@ export class PetSearch extends Component<IProps, IState>{
           },
           {
             title: 'Size',
-            dataIndex: 'size',
-            key: 'size',
+            dataIndex: 'size_key',
+            key: 'size_key',
             sorter: true,
             filters: [{text: "S", value : "S"}, {text: "M", value: "M"}, {text: "L", value: "L"}, {text: "XL", value: "XL"}],
             filterMultiple: false,
             sortDirections: ["descend", "ascend"]
           },
           {
-            title: 'age',
-            dataIndex: 'age',
-            key: 'age',
+            title: 'Age',
+            dataIndex: 'age_key',
+            key: 'age_key',
             sorter: true,
             sortDirections: ["descend", "ascend"],
             filters: [{text: "Baby", value : "BABY"}, {text: "Young", value: "YOUNG"}, 
@@ -226,8 +236,8 @@ export class PetSearch extends Component<IProps, IState>{
               </Col>
             </Row>
           </Header>
-          <Content id="content">
-            <Row>
+          <Content id="pet-search-content">
+            <Row type="flex">
               <Col span={8} offset={8}>
                 <h1>Your new friend is waiting for you</h1>
               </Col>

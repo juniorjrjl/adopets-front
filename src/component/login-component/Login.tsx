@@ -74,7 +74,7 @@ export class Login extends Component<IProps, IState>{
     render(){
         return <div id="container">
             <Header id="login-header"></Header>
-                <Content id="content">
+                <Content id="login-content">
                     <Row type="flex">
                         <Col span={6} offset={8}>
                             <h1>Welcome to Adopets</h1>
