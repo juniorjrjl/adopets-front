@@ -156,7 +156,7 @@ export class PetSearch extends Component<IProps, IState>{
             title: 'Created date',
             dataIndex: 'created_date',
             key: 'created_date',
-            render: (data:Date) => moment(data).format("DD/MM/YYYY hh:mm:ss"),
+            render: (data:Date) => moment(data).format("MM/DD/YYYY hh:mm:ss A"),
             sorter: true,
             sortDirections: ["descend", "ascend"]
           },
