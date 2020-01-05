@@ -1,8 +1,9 @@
-import ClientAuthorization from '../../rest/client-authorization';
-import React, {Component } from 'react';
-import { Input, Button, Row, Col, Layout } from 'antd';
 import 'antd/dist/antd.css';
 import './login.css'
+import ClientAuthorization from '../../rest/client-authorization';
+import React, {Component, FormEvent } from 'react';
+import { Input, Button, Row, Col, Layout, Form } from 'antd';
+import { FormComponentProps } from 'antd/es/form';
 import history from '../../navigation/history';
 import { OrganizationUser } from '../../rest/type/request/organization-user';
 import { SessionKey } from '../../constants/session-key';
@@ -10,24 +11,20 @@ import PageKey from '../../constants/page-key';
 import Notification from '../notify/notification';
 const  { Header, Content} = Layout;
 
-export interface IProps { }
+export interface IProps extends FormComponentProps { }
 
-export interface IState {
-    user: OrganizationUser
-}
+export interface IState { }
 
-export class Login extends Component<IProps, IState>{
+class LoginBuilder extends Component<IProps, IState>{
 
     constructor(props: IProps){
         super(props);
-        this.state = {
-            user: new  OrganizationUser()
-        }
         this.login = this.login.bind(this);
     }
 
     public componentDidMount(): void{
         this.authorizeApp();
+        this.props.form.validateFields();
     }
 
     private async authorizeApp(){
@@ -45,8 +42,10 @@ export class Login extends Component<IProps, IState>{
         })
     }
 
-    private async login(){
-        await ClientAuthorization.authorizeUser(this.state.user)
+    private login(event: FormEvent<HTMLFormElement>){
+        event.preventDefault();
+        this.props.form.validateFields((_err: any, values: {email: string, password: string}) => {
+             ClientAuthorization.authorizeUser(new OrganizationUser(values.email,values.password))
             .then(r =>{
                 if (r.data.data){
                     localStorage.setItem(SessionKey.CURRENT_USER, r.data.data.organization_user.first_name + 
@@ -60,48 +59,85 @@ export class Login extends Component<IProps, IState>{
             })
             .catch(() => Notification.sendNotification("error", "Error", "Unexpected error, please contact a system administrator"))
             .finally(() => this.authorizeApp());
+          });
     }
 
-    private changeUser(e: React.ChangeEvent<HTMLInputElement>, property: "email" | "password"){
-        e.persist();
-        this.setState(prevState => {
-            let user = Object.assign({}, prevState.user);
-            user[property] = e.target.value;
-            return { user };
-        });
+    private hasErrors(fieldsError: any): boolean{
+        return Object.keys(fieldsError).some(field => fieldsError[field]);
     }
 
     render(){
+
+        const { getFieldDecorator, getFieldsError, getFieldError, isFieldTouched } = this.props.form;
+
+        const emailError = isFieldTouched('email') && getFieldError('email');
+        const passwordError = isFieldTouched('password') && getFieldError('password');
         return <div id="container">
             <Header id="login-header"></Header>
                 <Content id="login-content">
-                    <Row type="flex">
-                        <Col span={6} offset={8}>
-                            <h1>Welcome to Adopets</h1>
-                        </Col>
-                    </Row>
-                    <Row type="flex">
-                        <Col span={6} offset={8}>
-                            <Input placeholder="Login" 
-                                   value={this.state.user.email} 
-                                   onChange={e => this.changeUser(e, "email")}/>
-                        </Col>
-                    </Row>
-                    <Row type="flex">
-                        <Col span={6} offset={8}>
-                            <Input.Password placeholder="Password" 
-                            value={this.state.user.password} 
-                            onChange={e => this.changeUser(e, "password")} />
-                        </Col>
-                    </Row>
-                    <Row type="flex">
-                        <Col span={6} offset={8}>
-                            <Button type="primary" shape="round" icon="login" block onClick={this.login}>
-                                Login
-                            </Button>
-                        </Col>
-                    </Row>
+                    <Form onSubmit={this.login}>
+                        <Row type="flex">
+                            <Col span={6} offset={8}>
+                                <h1>Welcome to Adopets</h1>
+                            </Col>
+                        </Row>
+                        <Row type="flex">
+                            <Col span={6} offset={8}>
+                                <Form.Item validateStatus={emailError ? "error" : ""} help={emailError || ""}>
+                                    {
+                                        getFieldDecorator("email", 
+                                        {
+                                            validateTrigger: ['onBlur'],
+                                            rules: [
+                                            {
+                                                required: true, message: 'Please input your e-mail'
+                                            },
+                                            {
+                                                type: 'email',
+                                                message: 'Please input a valid e-mail',
+                                            }]
+                                        }
+                                    )
+                                    (<Input autoFocus placeholder="Login" />)
+
+                                    }
+                                </Form.Item>
+                            </Col>
+                        </Row>
+                        <Row type="flex">
+                            <Col span={6} offset={8}>
+                                <Form.Item validateStatus={passwordError ? "error" : ""} help={passwordError || ""}>
+                                    {
+                                        getFieldDecorator("password",
+                                        {
+                                            validateTrigger: ['onBlur'],
+                                            rules: [{
+                                                    required: true, message: 'Please input your password'
+                                            }]
+                                        })
+                                        (<Input.Password placeholder="Password" />)
+                                    }
+                                </Form.Item>
+                            </Col>
+                        </Row>
+                        <Row type="flex">
+                            <Col span={6} offset={8}>
+                                <Form.Item>
+                                    <Button type="primary" 
+                                            shape="round" 
+                                            icon="login" 
+                                            htmlType="submit" 
+                                            disabled={this.hasErrors(getFieldsError())}
+                                            block>
+                                        Login
+                                    </Button>
+                                </Form.Item>
+                            </Col>
+                        </Row>
+                    </Form>
                 </Content>
             </div>
     }
 }
+
+export const Login = Form.create<IProps>({})(LoginBuilder);

@@ -1,10 +1,10 @@
+import 'antd/dist/antd.min.css';
+import './pet-search.css';
 import React, { Component } from 'react';
 import { Tag, Table, Row, Col, Button, Tooltip, Layout } from 'antd';
 import { PetTableModel } from './type/pet-table-model';
 import moment from 'moment';
 import { ColumnProps, PaginationConfig, TableCurrentDataSource, SorterResult } from 'antd/lib/table';
-import 'antd/dist/antd.min.css'
-import './pet-search.css'
 import { SessionKey } from '../../constants/session-key';
 import PetManagement from '../../rest/pet-management';
 import { PetSearchConfig, Option, Search } from '../../rest/type/request/pet-search-config';
@@ -68,7 +68,7 @@ export class PetSearch extends Component<IProps, IState>{
     }
 
     handleTableChange = (pagination: PaginationConfig, filters: Partial<Record<keyof PetTableModel, string[]>>, 
-            sorter: SorterResult<PetTableModel>, extra: TableCurrentDataSource<PetTableModel>) => {        
+            sorter: SorterResult<PetTableModel>, _extra: TableCurrentDataSource<PetTableModel>) => {        
       let searchConfig = new PetSearchConfig();
       searchConfig.search = this.filterConfig();
       let option = new Option();
@@ -115,13 +115,13 @@ export class PetSearch extends Component<IProps, IState>{
           }else{
             if (r.data.code === 5203){
               Notification.sendNotification("error", "Error", "Your session has expired, please login again");
-              history.push("/")
+              this.logout();
             }else{
               Notification.sendNotification("error", "Error", r.data.message);
             }
           }
         })
-        .catch(e => Notification.sendNotification("error", "Error", "Unexpected error, please contact a system administrator"));
+        .catch(_e => Notification.sendNotification("error", "Error", "Unexpected error, please contact a system administrator"));
         this.setState({loading: false});
     }
 
@@ -165,14 +165,23 @@ export class PetSearch extends Component<IProps, IState>{
             dataIndex: 'status',
             key: 'status_key',
             sorter: true,
-            sortDirections: ["descend", "ascend"]
+            sortDirections: ["descend", "ascend"],
+            render: (data: string) => data.charAt(0) + data.slice(1).toLocaleLowerCase()
           },
           {
             title: 'Price',
             dataIndex: 'price',
             key: 'price',
             sorter: true,
-            sortDirections: ["descend", "ascend"]
+            sortDirections: ["descend", "ascend"],
+            render: (data: number) =>{
+              const formatter = new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD',
+                minimumFractionDigits: 2
+              });
+              return formatter.format(data)
+            }
           },
           {
             title: 'Payment Model',

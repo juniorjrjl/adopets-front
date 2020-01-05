@@ -17,7 +17,7 @@ export default class PetManagement{
         if (!petSearchConfig.search.size_key){
             delete petSearchConfig.search.size_key
         }
-        return axios.post(WebResource.PET_MANAGEMENT.PET_SEARCH, 
+        return axios.post(WebResource.PET_MANAGEMENT.SEARCH, 
                           petSearchConfig,
                           {headers: {'Authorization': `Bearer ${access_token}`}})
     }

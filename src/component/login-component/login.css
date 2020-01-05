@@ -1,13 +1,8 @@
-.ant-row-flex{
-    margin: 10px;
-}
-
-
-#login-header{
-    background-color: #1890ff;
-}
-
 #login-content{
     margin-top: 15%;
     margin-left: 10%;
 }
+
+.ant-layout-header {
+    background-color: #1890ff;
+  }

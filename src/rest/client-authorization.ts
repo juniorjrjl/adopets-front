@@ -6,7 +6,7 @@ import WebResource from '../constants/web-resource';
 export default class ClientAuthorization{
 
     public static async requestSession(){
-        return axios.post(WebResource.AUTHENTICATION.SESSION_REQUEST, {system_api_key: "505763d6-4202-4b05-9efc-93b366939bcf"})
+        return axios.post(WebResource.AUTHENTICATION.SESSION_REQUEST, {system_api_key: WebResource.API_PKEY})
     }
 
 
