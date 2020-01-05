@@ -7,7 +7,7 @@ import moment from 'moment';
 import { ColumnProps, PaginationConfig, TableCurrentDataSource, SorterResult } from 'antd/lib/table';
 import { SessionKey } from '../../constants/session-key';
 import PetManagement from '../../rest/pet-management';
-import { PetSearchConfig, Option, Search } from '../../rest/type/request/pet-search-config';
+import { PetSearchConfig, Option, Search, SearchBuilder } from '../../rest/type/request/pet-search-config';
 import Notification from '../notify/notification';
 import history from '../../navigation/history';
 import PageKey from '../../constants/page-key';
@@ -55,16 +55,14 @@ export class PetSearch extends Component<IProps, IState>{
     }
 
     private filterConfig(): Search{
-      let search = new Search();
-      search._fields = ["id", "uuid", "custom_code", "name", 
-                        "specie_id", "breed_primary_id", "price", "created_date", 
-                        "status_key", "branch_id", "payment_model_key", "sex_key",
-                        "size_key","age_key"]
-      search.specie.with._fields = [ "id","name"]
-      search.breed_primary.with._fields = [ "id","name"]
-      search.branch.with._fields = [ "id","name"]
-      search.branch.with.uuid = "ef71cadf-fa9b-4c8b-a1a8-0e31e784c3ff";
-      return search;
+      return new SearchBuilder(["id", "uuid", "custom_code", "name", 
+                                "specie_id", "breed_primary_id", "price", "created_date", 
+                                "status_key", "branch_id", "payment_model_key", "sex_key",
+                                "size_key","age_key"])
+                              .setSpecieFields([ "id","name"])
+                              .setBreedPrimary([ "id","name"])
+                              .setBranch("ef71cadf-fa9b-4c8b-a1a8-0e31e784c3ff", [ "id","name"])
+                              .build();
     }
 
     handleTableChange = (pagination: PaginationConfig, filters: Partial<Record<keyof PetTableModel, string[]>>, 
